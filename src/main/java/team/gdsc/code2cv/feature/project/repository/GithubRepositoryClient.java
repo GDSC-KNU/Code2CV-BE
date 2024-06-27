@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
 import team.gdsc.code2cv.global.client.github.GithubRestApiClient;
+import team.gdsc.code2cv.global.client.github.response.detail.GithubCommitInfoModel;
+import team.gdsc.code2cv.global.client.github.response.detail.GithubRepoLanguageInfoModel;
 import team.gdsc.code2cv.global.client.github.response.GithubRepositoryInfoModel;
 
 /**
@@ -45,5 +47,33 @@ public class GithubRepositoryClient {
 			.map(HttpEntity::getBody)
 			.takeWhile(response -> !response.isEmpty());
 	}
+
+	/*
+	 * 프로젝트의 사용 언어를 가져온다.
+	 * https://api.github.com/repos/GDSC-KNU/Code2CV-BE/languages
+	 * Authorization: Bearer token
+	 */
+	public GithubRepoLanguageInfoModel getRepositoryLanguages(String token, String owner, String repo) {
+		return githubRestApiClient.getRepositoryLanguages("Bearer " + token, owner, repo).getBody();
+	}
+	/*
+	 * 페이징된 커밋정보를 가져온다.
+	 * 프레임워크 분석,기여자 분석,담당한 구현,사용한 라이브러리 분석 메서드를 위한 정보를 담고 있다.
+	 * 페이지
+	 */
+	public Stream<List<GithubCommitInfoModel>> getRepositoryCommitsAllPageStream(String token, String owner, String repo) {
+		return Stream.iterate(1, page -> page + 1)
+			.map(currentPage -> githubRestApiClient.getRepositoryCommits(
+				"Bearer " + token, owner, repo, currentPage,
+				30, null, null
+			))
+			.map(HttpEntity::getBody)
+			.takeWhile(response -> !response.isEmpty());
+	}
+	/*
+	 * 프로젝트의 커밋의 변경 파일 목록을 가져온다.
+	 */
+
+
 
 }
